@@ -4,6 +4,8 @@ int pause = 0;
 int trajectory = 0;
 int show_attraction_radius = 0;
 int in_creation = 0;
+float zoom = 1;
+
 Slider slider;
 
 void setup() {
@@ -12,13 +14,16 @@ void setup() {
 }
 
 void update_planets() {
+  int index = 0;
   for (int i = 0; i < planets.size(); i++) {
-    if (planets.get(i).in_creation == 0) {
+    if (planets.get(i).in_creation == 0 && pause == 0) {
       if (planets.get(i).is_fix == false) {
+        textAlign(CORNER, CORNER);
         textSize(32);
         fill(planets.get(i).c);
-        text("x : " + planets.get(i).vel.x, 100, 100 + i * 200);
-        text("y : " + planets.get(i).vel.y, 100, 200 + i * 200);
+        text("x : " + planets.get(i).vel.x, 100, 100 + index * 200);
+        text("y : " + planets.get(i).vel.y, 100, 200 + index * 200);
+        index++;
       }
       planets = planets.get(i).update(planets);
       planets.get(i).move();
@@ -29,6 +34,10 @@ void update_planets() {
 
 void draw() {
   background(0);
+  textSize(32);
+  fill(255);
+  text(frameRate, width - 100, 30);
+  text(zoom, width - 100, 60);
   update_planets();
   if (trajectory == 1)
     display_trajectory();
@@ -37,7 +46,6 @@ void draw() {
 
 void keyPressed() {
   if (keyCode == RIGHT) {
-    println("right");
     for (int i = 0; i < 100; i++) {
       update_planets();
     }
@@ -51,31 +59,36 @@ void keyPressed() {
     in_creation = 0;
   }
   if (key == ' ') {
-    if (pause == 0)
-      noLoop();
-    else
-      loop();
     pause ^= 1;
   }
-  if (key == 't')
+  if (key == 't') {
     trajectory ^= 1;
+  }
   if (key == 'r')
     show_attraction_radius ^= 1;
+  if (key == '+') {
+    zoom += 0.1;
+  }
+  if (key == '-') {
+    zoom -= 0.1;
+    if (zoom == 0)
+      zoom = 0.1;
+  }
 }
 
 void mouseClicked() {
   if (slider.hover())
     return;
   for (int i = 0; i < planets.size(); i++)
-    if (planets.get(i).hover()) {
+    if (planets.get(i).hover() && !planets.get(i).settings_menu.hover()) {
       planets.get(i).in_creation = 1;
       return;
     }
   if (in_creation == 0)
     create_new_planet();
-  in_creation = 1;
 }
 
 void create_new_planet() {
   planets.add(new Planet());
+  in_creation = 1;
 }
